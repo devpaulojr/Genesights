@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+from sqlalchemy import create_engine
 
 st.set_page_config(page_title="Genesights", layout="wide")
 
@@ -18,6 +19,14 @@ def calculate_delta(df, column):
 
 def is_valid_column(df, col_name):
     return col_name in df.columns and df[col_name].dropna().shape[0] > 0
+
+DB_USER = "postgres"
+DB_PASSWORD = "admin"
+DB_HOST = "localhost" 
+DB_PORT = "5432"
+DB_NAME = "GENESIGHTS_DATABASE"
+
+engine = create_engine(f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
 
 
 with st.sidebar:
@@ -81,13 +90,9 @@ if uploaded_file is not None:
 
                 if state in estados_coords:
                     coords = estados_coords[state]
-                    if state == "PB" and isinstance(coords, list):
-                        map_df = pd.DataFrame(coords, columns=["lat", "lon"])
-                        st.map(map_df, zoom=6, use_container_width=True, height=263, width=300)
-                    else:
-                        lat, lon = coords
-                        map_df = pd.DataFrame({"lat": [lat], "lon": [lon]})
-                        st.map(map_df, zoom=4, use_container_width=True, height=263, width=300)
+                    lat, lon = coords
+                    map_df = pd.DataFrame({"lat": [lat], "lon": [lon]})
+                    st.map(map_df, zoom=4, use_container_width=True, height=263, width=300)
                 else:
                     st.info("Localização não disponível para este estado.")
 
@@ -99,7 +104,6 @@ if uploaded_file is not None:
                 ax.set_facecolor("#1e1e1e")
 
                 ax.grid(color="#444444", linestyle="--", linewidth=0.7)
-
                 ax.plot(x, y, color="#444444", linewidth=1.5, linestyle='--', zorder=1)
                 ax.plot(x, y, marker="o", color="#29b5e8", linewidth=2, linestyle='-', zorder=2)
 
@@ -115,12 +119,18 @@ if uploaded_file is not None:
                     spine.set_color("white")
 
                 st.pyplot(fig)
-
         else:
             st.warning(f"⚠️ {state} - {product}: Dados insuficientes ou ausentes para **{col_name}**.")
 
     st.subheader("📄 Dados Filtrados")
     st.dataframe(df_filtered, use_container_width=True)
+
+    if st.button("💾 Enviar dados para o banco"):
+        try:
+            df_filtered.to_sql("data_table", engine, if_exists="append", index=False)
+            st.success("✅ Dados enviados com sucesso para o banco de dados.")
+        except Exception as error:
+            st.error(f"❌ Erro ao enviar dados: {error}")
 
 else:
     st.info("📂 Faça o upload de um arquivo CSV ou XLSX para visualizar os gráficos.")
