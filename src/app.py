@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
 st.set_page_config(page_title="Genesights", layout="wide")
+
 
 def calculate_delta(df, column):
     series = df[column].dropna()
@@ -15,12 +15,9 @@ def calculate_delta(df, column):
     delta_percent = (delta / previous_value) * 100 if previous_value != 0 else 0
     return delta, delta_percent
 
+
 def is_valid_column(df, col_name):
-    if col_name not in df.columns:
-        return False
-    if df[col_name].dropna().shape[0] < 2:
-        return False
-    return True
+    return col_name in df.columns and df[col_name].dropna().shape[0] > 0
 
 
 with st.sidebar:
@@ -53,14 +50,7 @@ if uploaded_file is not None:
         "PI": (-5.0892, -42.8019),
         "CE": (-3.7172, -38.5433),
         "RN": (-5.7945, -35.2110),
-        "PB": [
-            (-7.11532, -34.8610),
-            (-6.9815, -34.8335),
-            (-7.0173, -37.2747),
-            (-7.1256, -34.9321),
-            (-7.2307, -35.8811),
-            (-6.7515, -38.2312)
-        ],
+        "PB": (-7.11532, -34.8610),
         "PE": (-8.0476, -34.8770),
         "AL": (-9.6659, -35.7350),
         "SE": (-10.9472, -37.0731),
@@ -111,7 +101,6 @@ if uploaded_file is not None:
                 ax.grid(color="#444444", linestyle="--", linewidth=0.7)
 
                 ax.plot(x, y, color="#444444", linewidth=1.5, linestyle='--', zorder=1)
-
                 ax.plot(x, y, marker="o", color="#29b5e8", linewidth=2, linestyle='-', zorder=2)
 
                 for i, val in enumerate(y):
@@ -128,7 +117,7 @@ if uploaded_file is not None:
                 st.pyplot(fig)
 
         else:
-            st.info(f"**{col_name}** - Gráfico omitido. Coluna inexistente ou com poucos dados.")
+            st.warning(f"⚠️ {state} - {product}: Dados insuficientes ou ausentes para **{col_name}**.")
 
     st.subheader("📄 Dados Filtrados")
     st.dataframe(df_filtered, use_container_width=True)
