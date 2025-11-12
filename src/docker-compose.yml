@@ -1,0 +1,29 @@
+services:
+  postgres_db:
+    image: postgres:13.20
+    container_name: "postgresdb"
+    environment:
+      POSTGRES_DB: "GENESIGHTS_DATABASE"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "admin"
+    ports:
+      - "5432:5432"
+    networks:
+      - genesights-network
+
+  pgadmin4:
+    image: dpage/pgadmin4
+    container_name: "pgadmin4"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    ports:
+      - "15432:80"
+    depends_on:
+      - postgres_db
+    networks:
+      - genesights-network
+
+networks:
+  genesights-network:
+    driver: bridge
