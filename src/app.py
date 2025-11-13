@@ -2,8 +2,20 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from sqlalchemy import create_engine
+from dotenv import load_dotenv
+import os
 
 st.set_page_config(page_title="Genesights", layout="wide")
+
+load_dotenv()
+
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+
+engine = create_engine(f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
 
 
 def calculate_delta(df, column):
@@ -16,17 +28,8 @@ def calculate_delta(df, column):
     delta_percent = (delta / previous_value) * 100 if previous_value != 0 else 0
     return delta, delta_percent
 
-
 def is_valid_column(df, col_name):
     return col_name in df.columns and df[col_name].dropna().shape[0] > 0
-
-DB_USER = "postgres"
-DB_PASSWORD = "admin"
-DB_HOST = "localhost" 
-DB_PORT = "5432"
-DB_NAME = "GENESIGHTS_DATABASE"
-
-engine = create_engine(f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
 
 
 with st.sidebar:
